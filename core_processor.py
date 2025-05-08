@@ -128,7 +128,7 @@ def run_core_logic(
         selenium_driver = webdriver.Chrome(service=service, options=chrome_options)
         log_callback("WebDriver initialized using webdriver-manager.")
     except Exception as e:
-        log_callback(f"ERROR initializing Selenium WebDriver with webdriver-manager: {e}")
+        log_callback(f"ERROR initializing Selenium WebDriver with webdriver-manager")
         log_callback("Ensure you have an internet connection for the first run to download ChromeDriver.")
         if selenium_driver:
             selenium_driver.quit()
@@ -149,10 +149,10 @@ def run_core_logic(
                 script_or_style.decompose()
             return soup.get_text(separator=" ", strip=True)
         except (WebDriverException, TimeoutException) as e:
-            log_callback(f"Selenium - WebDriver or Timeout error for {url}: {e}")
+            log_callback(f"Selenium - WebDriver or Timeout error for {url}")
             return None
         except Exception as e:
-            log_callback(f"Selenium - Other error for {url}: {e}")
+            log_callback(f"Selenium - Other error for {url}")
             return None
 
     log_callback(f"Starting processing rows {start_row} - {end_row}...")
@@ -226,15 +226,15 @@ def run_core_logic(
             else:
                 log_callback(f"Non-HTML content type for {url_to_scrape}: {response.headers.get('Content-Type')}. Trying with Selenium.")
                 text_content = get_text_with_selenium_local(url_to_scrape)
-                if text_content: scraped_with = "Selenium (after non-HTML)"
+                if text_content: scraped_with = "Selenium..."
         except requests.exceptions.RequestException:
             log_callback(f"Requests error for {url_to_scrape}. Trying with Selenium...")
             text_content = get_text_with_selenium_local(url_to_scrape)
-            if text_content: scraped_with = "Selenium (after requests error)"
+            if text_content: scraped_with = "Selenium..."
         except Exception as e_req:
             log_callback(f"Generic request error for {url_to_scrape}: {e_req}. Trying with Selenium...")
             text_content = get_text_with_selenium_local(url_to_scrape)
-            if text_content: scraped_with = "Selenium (after generic requests error)"
+            if text_content: scraped_with = "Selenium..."
 
         if text_content:
             log_callback(f"Content retrieved (length: {len(text_content)} chars) using: {scraped_with}")
@@ -242,7 +242,8 @@ def run_core_logic(
 
             log_callback("Starting classification with OpenAI...")
             classification_result_str = classify_with_openai_local(clean_text)
-            log_callback(f"Raw LLM output: {classification_result_str}")
+
+            ## TO UPDATE WITH NEW STRUCTURES
 
             if prompt_type == "exhibitor_fit":
                 parsed_fit = "Error"
@@ -338,7 +339,7 @@ def run_core_logic(
         except Exception as e_gs_update:
             log_callback(f"Error updating Google Sheets for row {current_row_index}: {e_gs_update}")
 
-        time.sleep(1) # Ograniczenie częstotliwości zapytań
+        time.sleep(1)
 
     if selenium_driver:
         selenium_driver.quit()

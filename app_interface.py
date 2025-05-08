@@ -68,9 +68,10 @@ st.sidebar.header("↔️ Row Range")
 start_row_input = st.sidebar.number_input("Start Row:", min_value=1, max_value=1000000, value=2)
 end_row_input = st.sidebar.number_input("End Row:", min_value=1, max_value=1000000, value=5)
 
-st.sidebar.header("📊 Column Configuration")
+st.sidebar.header("⬇️ Input column")
 company_input_column_input = st.sidebar.text_input("Row with domain:", value="A", max_chars=2)
 
+st.sidebar.header("⬆️ Output columns")
 output_col_1_val = ""
 output_col_2_val = ""
 output_col_3_val = ""
@@ -101,8 +102,6 @@ def is_valid_column(col_str):
         return True
     return re.fullmatch(r"^[A-Za-z]{1,2}$", col_str) is not None
 
-st.header("▶️ Run Analysis")
-
 log_placeholder = st.empty()
 log_messages = []
 
@@ -125,7 +124,29 @@ def ui_log_callback(message):
     """
     log_placeholder.markdown(styled_log_html, unsafe_allow_html=True)
 
-if st.button("Run Analysis", type="primary"):
+st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        background-color: #009a22;
+        color: white;
+        margin-top: 5px;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 0.6em 1.5em;
+        transition: background-color 0.3s ease;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #1e7e34;
+    }
+    .centered-button {
+        display: flex;
+        justify-content: center;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="centered-button">', unsafe_allow_html=True)
+if st.button("Run Analysis"):
     log_messages.clear()
     ui_log_callback("Starting input validation...\n")
 
@@ -194,7 +215,6 @@ if st.button("Run Analysis", type="primary"):
 
     if valid_input:
         ui_log_callback("Validation completed successfully. Starting processing...\n")
-        st.balloons()
 
         with st.spinner("Processing... This may take a while..."):
             try:
@@ -220,8 +240,9 @@ if st.button("Run Analysis", type="primary"):
     else:
         ui_log_callback("\nProcessing aborted due to validation errors.")
         st.error("Fix the configuration errors and try again.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("To run code remamber to share your google sheet to email: `classification-sheets@classification-442812.iam.gserviceaccount.com`.")
+st.sidebar.markdown("## To run code remember to share your google sheet to email: `classification-sheets@classification-442812.iam.gserviceaccount.com`.")
 st.sidebar.markdown("Ensure the `CREDS_FILE` and `OPENAI_API_KEY` variables are set in the `.env` file in the project's root directory.")
 st.sidebar.markdown("`CREDS_FILE` is the path to your Google `credentials.json` file.")
