@@ -6,7 +6,7 @@ The Company Website Analyzer is a Streamlit-based application designed to analyz
 
 The application allows users to:
 * Select different analysis types (e.g., "Exhibitor Fit Analysis", "Company Name Changer").
-* Configure Google Sheets integration for input (company domains/names) and output.
+* Configure Google Sheets integration for input (company domains) and output.
 * Specify a range of rows in the Google Sheet to process.
 * View real-time logs of the analysis process.
 
@@ -79,7 +79,8 @@ CREDS_FILE="./path/to/your/google-credentials.json"
     * Remember to share your Google Sheets with the service account email address found in this JSON file (e.g., your-service-account-name@your-project-id.iam.gserviceaccount.com).
 
 #### 4. ChromeDriver (for Selenium).
-    The webdriver-manager library (installed as a dependency) should automatically download and manage ChromeDriver for Selenium. An internet connection is required for the first time it runs or when an update is needed.
+
+The webdriver-manager library (installed as a dependency) should automatically download and manage ChromeDriver for Selenium. An internet connection is required for the first time it runs or when an update is needed.
 
 ## Running the Application
 
