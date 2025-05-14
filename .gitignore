@@ -1,6 +1,8 @@
 .env
 other_llms
 creds.json
+.DS_Store
+run_llm_gpt.py
 
 
 # Byte-compiled / optimized / DLL files
