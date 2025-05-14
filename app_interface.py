@@ -144,6 +144,7 @@ if selected_prompt_display_name and available_prompts_display:
         except Exception as e_get_conf_sidebar:
             st.warning(f"Cannot get configuration for handler (key: {key}) when matching sidebar display name: {e_get_conf_sidebar}")
 
+st.sidebar.info(f"Currently selected prompt key: `{selected_prompt_key}`" if selected_prompt_key else "No prompt selected/loaded.")
 
 num_outputs_for_ui = current_prompt_config.get("num_outputs", 0)
 ui_output_labels: List[str] = current_prompt_config.get("output_labels", [])
@@ -194,7 +195,23 @@ def ui_log_callback(message: str):
     max_log_lines = 200
     if len(log_messages) > max_log_lines:
         del log_messages[:-max_log_lines]
-    log_placeholder.code("".join(log_messages), language="log")
+    log_placeholder.markdown(f"""
+        <div style="
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        ">
+            <pre><code>{"".join(log_messages)}</code></pre>
+        </div>
+    """, unsafe_allow_html=True)
+
+
 
 def is_valid_column(col_str: str) -> bool:
     if not col_str:
@@ -334,25 +351,54 @@ if st.button("Start Analysis", disabled=run_button_disabled, key="run_analysis_b
 
 st.markdown('</div>', unsafe_allow_html=True)
 
+CLASSIFICATION = os.getenv("CLASSIFICATION_LINK")
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     "**Important notes:**\n"
-    "- Share your Google Sheet with your service account: `classification-sheets@classification-442812.iam.gserviceaccount.com` (or your specific service account email).\n"
+    f"- Share your Google Sheet with your service account: `{CLASSIFICATION}` (or your specific service account email).\n"
     "- Make sure that the `CREDS_FILE` (path to your Google `credentials.json` file) and `OPENAI_API_KEY` variables are set in the `.env` file in your project root.\n"
     "- Prompt files (`.txt`) should be in the `./prompts/` folder.\n"
     "- The corresponding Python handler files (`_handler.py`) should be in the `./prompt_handlers/` package."
 )
-st.sidebar.markdown("---")
-st.sidebar.info(f"Currently selected prompt key: `{selected_prompt_key}`" if selected_prompt_key else "No prompt selected/loaded.")
 
 if "run_analysis_button_clicked_once" not in st.session_state:
     st.session_state.run_analysis_button_clicked_once = False
 
 if (not st.session_state.run_analysis_button_clicked_once and log_messages) or \
    (not available_prompts_display and log_messages):
-    log_placeholder.code("".join(log_messages), language="log")
+    log_placeholder.markdown(f"""
+        <div style="
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        ">
+            <pre><code>{"".join(log_messages)}</code></pre>
+        </div>
+    """, unsafe_allow_html=True)
 elif not log_messages:
-    log_placeholder.code("Logs will appear here once processing begins or if there are any loading problems.", language="log")
+    log_placeholder.markdown("""
+        <div style="
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        ">
+            <pre><code>Logs will appear here once processing begins or if there are any loading problems.</code></pre>
+        </div>
+    """, unsafe_allow_html=True)
+
+
 
 if "run_analysis_button" in st.session_state and st.session_state.run_analysis_button:
     st.session_state.run_analysis_button_clicked_once = True

@@ -67,7 +67,7 @@ class ExhibitorFitHandler(BasePromptHandler):
                     parsed_fit = str(llm_data.get("fit_for_expo", "Error")).strip()
                     parsed_explanation = str(llm_data.get("explanation", "LLM JSON response missing 'explanation' field.")).strip()
 
-                    if parsed_fit.lower() in ["yes", "no"]:
+                    if parsed_fit.lower() in ["yes", "no", "maybe"]:
                         parsed_fit = parsed_fit.capitalize()
                     elif parsed_fit.lower() == "error" and "fit_for_expo" not in llm_data:
                         parsed_explanation = f"LLM JSON response missing 'fit_for_expo' field. Explanation: {parsed_explanation}"
