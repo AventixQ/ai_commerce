@@ -2,4 +2,4 @@
 
 cd "$(dirname "$0")"
 source .venv/bin/activate
-streamlit run app_interface.py
+streamlit run main_app.py

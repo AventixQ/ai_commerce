@@ -15,7 +15,8 @@ class NameChangerHandler(BasePromptHandler):
             "display_name": "Company Name Changer",
             "file_base": NameChangerHandler.PROMPT_KEY,
             "num_outputs": 1,
-            "output_labels": ["Column: New company name"]
+            "output_labels": ["Column: New company name"],
+            "target_page_id": "llm_interface"
         }
 
     @staticmethod

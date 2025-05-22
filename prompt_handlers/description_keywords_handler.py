@@ -27,7 +27,8 @@ class DescriptionKeywordHandler(BasePromptHandler):
             "display_name": "Description and Keywords creator",
             "file_base": DescriptionKeywordHandler.PROMPT_KEY,
             "num_outputs": 2,
-            "output_labels": ["Column: Description", "Column: Keywords"]
+            "output_labels": ["Column: Description", "Column: Keywords"],
+            "target_page_id": "scrap_llm_interface"
         }
 
     @staticmethod

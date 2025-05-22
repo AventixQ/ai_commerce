@@ -5,7 +5,7 @@ import re
 from dotenv import load_dotenv
 import importlib
 import pkgutil
-from typing import Dict, Type, List, Any, Optional
+from typing import Dict, Type, List, Any, Optional, Union
 from prompt_handlers.base_handler import BasePromptHandler
 from core_processor_llm_only import run_core_logic
 
@@ -13,6 +13,7 @@ load_dotenv()
 
 PROMPTS_FOLDER = "prompts/"
 PROMPT_HANDLERS_PACKAGE_NAME = "prompt_handlers"
+CURRENT_PAGE_ID = "llm_interface"
 
 st.set_page_config(page_title="Company Website Analyzer", layout="wide")
 st.title("Company Website Analyzer for Ecommerce Berlin Expo")
@@ -21,7 +22,7 @@ AVAILABLE_PROMPT_HANDLERS: Dict[str, Type[BasePromptHandler]] = {}
 PROMPT_CONFIG_MAP: Dict[str, Dict[str, Any]] = {}
 ACTUAL_PROMPT_FILES: Dict[str, str] = {}
 
-def load_prompt_handlers_and_configs():
+def load_prompt_handlers_and_configs(current_page_identifier: str):
     """
     Dynamically loads prompt handlers from PROMPT_HANDLERS_PACKAGE_NAME package.
     Populates global dictionaries AVAILABLE_PROMPT_HANDLERS, PROMPT_CONFIG_MAP, ACTUAL_PROMPT_FILES.
@@ -72,6 +73,28 @@ def load_prompt_handlers_and_configs():
                                 st.error(f"ERROR: Handler '{attribute_name}' w module '{module_name}' returned None or empty string from get_prompt_key(). Skipping this handler.")
                                 continue
 
+                            handler_target_id: Union[str, List[str], None] = config.get("target_page_id")
+                            display_name_for_log = config.get('display_name', attribute_name)
+
+                            is_for_this_page = False
+                            if handler_target_id is None:
+                                # Jeśli brak 'target_page_id', załóżmy, że jest dla wszystkich (opcjonalne założenie)
+                                # Możesz też zdecydować, że brak oznacza, że nie jest dla żadnej konkretnej strony i go pominąć.
+                                # Dla jasności, przyjmijmy, że brak oznacza, że nie pasuje do żadnej strony, chyba że current_page_identifier to np. "all_pages_view"
+                                # Lepsze podejście: jawne "all" lub lista.
+                                pass # Domyślnie nie jest dla tej strony, jeśli nie zdefiniowano.
+                            elif isinstance(handler_target_id, str):
+                                if handler_target_id.lower() == current_page_identifier.lower() or handler_target_id.lower() == "all":
+                                    is_for_this_page = True
+                            elif isinstance(handler_target_id, list):
+                                normalized_target_ids = [str(tid).lower() for tid in handler_target_id]
+                                if current_page_identifier.lower() in normalized_target_ids or "all" in normalized_target_ids:
+                                    is_for_this_page = True
+                            
+                            if not is_for_this_page:
+                                # Opcjonalnie: print(f"DEBUG: Pomijam handler '{display_name_for_log}' (cel: {handler_target_id}) dla strony '{current_page_identifier}'.")
+                                continue
+
                             display_name = config.get("display_name")
                             file_base = config.get("file_base")
 
@@ -105,7 +128,7 @@ def load_prompt_handlers_and_configs():
     print(f"DEBUG app_interface.load_prompt_handlers_and_configs: Final Content AVAILABLE_PROMPT_HANDLERS: {list(AVAILABLE_PROMPT_HANDLERS.keys())}")
 
 
-load_prompt_handlers_and_configs()
+load_prompt_handlers_and_configs(CURRENT_PAGE_ID)
 
 available_prompts_display = sorted(list(PROMPT_CONFIG_MAP.keys()))
 

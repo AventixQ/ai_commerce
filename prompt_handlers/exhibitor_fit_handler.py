@@ -27,7 +27,8 @@ class ExhibitorFitHandler(BasePromptHandler):
             "display_name": "Exhibitor Fit Analysis",
             "file_base": ExhibitorFitHandler.PROMPT_KEY,
             "num_outputs": 2,
-            "output_labels": ["Column: Exhibitor fit", "Column: Reason"]
+            "output_labels": ["Column: Exhibitor fit", "Column: Reason"],
+            "target_page_id": "scrap_llm_interface"
         }
 
     @staticmethod

@@ -12,8 +12,8 @@ st.markdown("---")
 
 st.subheader("Pick type of analysis:")
 
-path_analizator_llm_only = "pages/app_interface_llm.py"
-path_analizator_scrap_llm = "pages/app_interface_scrap_llm.py"
+path_analizator_llm_only = "pages/App_interface_with_LLM.py"
+path_analizator_scrap_llm = "pages/App_interface_with_Scraping_and_LLM.py"
 
 col1, col2 = st.columns(2)
 

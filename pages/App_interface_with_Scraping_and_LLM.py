@@ -5,7 +5,7 @@ import re
 from dotenv import load_dotenv
 import importlib
 import pkgutil
-from typing import Dict, Type, List, Any, Optional
+from typing import Dict, Type, List, Any, Optional, Union
 from prompt_handlers.base_handler import BasePromptHandler
 from core_processor import run_core_logic
 
@@ -13,6 +13,7 @@ load_dotenv()
 
 PROMPTS_FOLDER = "prompts/"
 PROMPT_HANDLERS_PACKAGE_NAME = "prompt_handlers"
+CURRENT_PAGE_ID = "scrap_llm_interface"
 
 st.set_page_config(page_title="Company Website Analyzer", layout="wide")
 st.title("Company Website Analyzer for Ecommerce Berlin Expo")
@@ -21,13 +22,19 @@ AVAILABLE_PROMPT_HANDLERS: Dict[str, Type[BasePromptHandler]] = {}
 PROMPT_CONFIG_MAP: Dict[str, Dict[str, Any]] = {}
 ACTUAL_PROMPT_FILES: Dict[str, str] = {}
 
-def load_prompt_handlers_and_configs():
+def load_prompt_handlers_and_configs(current_page_identifier: str):
     """
     Dynamically loads prompt handlers from PROMPT_HANDLERS_PACKAGE_NAME package.
-    Populates global dictionaries AVAILABLE_PROMPT_HANDLERS, PROMPT_CONFIG_MAP, ACTUAL_PROMPT_FILES.
+    Populates global dictionaries AVAILABLE_PROMPT_HANDLERS, PROMPT_CONFIG_MAP, ACTUAL_PROMPT_FILES,
+    filtered for the current page.
     """
+    AVAILABLE_PROMPT_HANDLERS.clear()
+    PROMPT_CONFIG_MAP.clear()
+    ACTUAL_PROMPT_FILES.clear()
+
     if not os.path.isdir(PROMPTS_FOLDER):
         st.error(f"Folder '{PROMPTS_FOLDER}' does not exist.")
+        return
 
     try:
         prompt_handlers_package = importlib.import_module(PROMPT_HANDLERS_PACKAGE_NAME)
@@ -45,11 +52,12 @@ def load_prompt_handlers_and_configs():
                             continue 
                         if issubclass(attribute, BasePromptHandler):
                             is_concrete_handler = True
+
                         elif attribute.__name__ != "BasePromptHandler" and (
-                              hasattr(attribute, "get_config") and callable(getattr(attribute, "get_config")) and
-                              hasattr(attribute, "process_llm_response") and callable(getattr(attribute, "process_llm_response")) and
-                              hasattr(attribute, "handle_no_content") and callable(getattr(attribute, "handle_no_content")) and
-                              hasattr(attribute, "get_prompt_key") and callable(getattr(attribute, "get_prompt_key"))
+                                hasattr(attribute, "get_config") and callable(getattr(attribute, "get_config")) and
+                                hasattr(attribute, "process_llm_response") and callable(getattr(attribute, "process_llm_response")) and
+                                hasattr(attribute, "handle_no_content") and callable(getattr(attribute, "handle_no_content")) and
+                                hasattr(attribute, "get_prompt_key") and callable(getattr(attribute, "get_prompt_key"))
                         ):
                             is_concrete_handler = True
                             st.info(f"Handler '{attribute_name}' in module '{module_name}' loaded by duck-typing.")
@@ -69,14 +77,31 @@ def load_prompt_handlers_and_configs():
                                 st.error(f"ERROR: Handler '{attribute_name}' in module '{module_name}' returned None from get_config(). Skipping this handler.")
                                 continue
                             if prompt_key is None or not prompt_key.strip():
-                                st.error(f"ERROR: Handler '{attribute_name}' w module '{module_name}' returned None or empty string from get_prompt_key(). Skipping this handler.")
+                                st.error(f"ERROR: Handler '{attribute_name}' in module '{module_name}' returned None or empty string from get_prompt_key(). Skipping this handler.")
+                                continue
+
+                            handler_target_config: Union[str, List[str], None] = config.get("target_page_id")
+                            
+                            is_for_this_page = False
+                            if handler_target_config is not None:
+                                if isinstance(handler_target_config, str):
+                                    if handler_target_config.lower() == current_page_identifier.lower() or \
+                                       handler_target_config.lower() == "all":
+                                        is_for_this_page = True
+                                elif isinstance(handler_target_config, list):
+                                    normalized_target_ids = [str(tid).lower() for tid in handler_target_config]
+                                    if current_page_identifier.lower() in normalized_target_ids or \
+                                       "all" in normalized_target_ids:
+                                        is_for_this_page = True
+                            
+                            if not is_for_this_page:
                                 continue
 
                             display_name = config.get("display_name")
                             file_base = config.get("file_base")
 
                             if not display_name or not file_base:
-                                st.warning(f"Handler '{attribute_name}' in module '{module_name}' has incomplete configuration. Configuration: {config}. Prompt key: {prompt_key}. Skipping.")
+                                st.warning(f"Handler '{attribute_name}' in module '{module_name}' has incomplete configuration (display_name or file_base missing). Configuration: {config}. Prompt key: {prompt_key}. Skipping.")
                                 continue
 
                             full_path = os.path.join(PROMPTS_FOLDER, file_base + ".txt")
@@ -84,28 +109,28 @@ def load_prompt_handlers_and_configs():
                                 AVAILABLE_PROMPT_HANDLERS[prompt_key] = handler_class
                                 PROMPT_CONFIG_MAP[display_name] = config
                                 ACTUAL_PROMPT_FILES[display_name] = full_path
-                                #st.info(f"✅ Successfully loaded handler: '{display_name}' (key: '{prompt_key}')")
+                                # st.info(f"Successfully loaded handler for this page: '{display_name}' (key: '{prompt_key}')") # Optional info
                             else:
                                 st.warning(f"Prompt file '{file_base}.txt' for handler '{display_name}' (key: {prompt_key}) not found in '{PROMPTS_FOLDER}'.")
+                        
                         except Exception as e_handler_init:
-                            handler_prompt_key_attr = getattr(handler_class, 'PROMPT_KEY', 'N/A') if hasattr(handler_class, 'PROMPT_KEY') else 'Nieznany'
-                            st.error(f"Error initializing/configuring handler '{attribute_name}' (for prompt key: {handler_prompt_key_attr}) z modułu '{module_name}': {type(e_handler_init).__name__} - {e_handler_init}")
-                        break
+                            handler_display_name_for_error = config.get('display_name', attribute_name) if 'config' in locals() and config else attribute_name
+                            st.error(f"Error initializing/configuring handler '{handler_display_name_for_error}' from module '{module_name}': {type(e_handler_init).__name__} - {e_handler_init}")
+                            break 
+            
             except ImportError as e_mod:
                 st.error(f"Error importing handler module '{module_name}': {e_mod}")
             except Exception as e_mod_general:
-                st.error(f"General module processing error '{module_name}': {e_mod_general}")
+                st.error(f"General module processing error for '{module_name}': {e_mod_general}")
 
     except ImportError as e_pkg:
         st.error(f"Could not import prompt handlers package: '{PROMPT_HANDLERS_PACKAGE_NAME}'. Error: {e_pkg}")
         st.error(f"Make sure the '{PROMPT_HANDLERS_PACKAGE_NAME}' directory exists and contains the file '__init__.py'.")
     except Exception as e_load_general:
         st.error(f"An unexpected error occurred while loading prompt handlers: {e_load_general}")
-    
-    print(f"DEBUG app_interface.load_prompt_handlers_and_configs: Final Content AVAILABLE_PROMPT_HANDLERS: {list(AVAILABLE_PROMPT_HANDLERS.keys())}")
+    print(f"DEBUG: Load complete for page '{current_page_identifier}'. Available prompt keys: {list(AVAILABLE_PROMPT_HANDLERS.keys())}")
 
-
-load_prompt_handlers_and_configs()
+load_prompt_handlers_and_configs(CURRENT_PAGE_ID)
 
 available_prompts_display = sorted(list(PROMPT_CONFIG_MAP.keys()))
 
