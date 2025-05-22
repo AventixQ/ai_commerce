@@ -5,9 +5,7 @@
 2. If the company name includes a region or format identifier (e.g., "France", "Europe", "USA") that is not core to the brand, remove it.
 3. Never return anything but the cleaned name — no explanations, punctuation, or added words.
 4. Reduce the first letter to uppercase and the remaining letters to lowercase, unless the specifics of the company name require something different.
-5. **Return** the result in *exactly* this format and nothing else:  
-
-<CLEANED COMPANY NAME>
+5. **Return** the result as *only* corrected company name, as in examples below. You must not add anything else.
 
 ## EXAMPLES
 

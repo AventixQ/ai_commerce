@@ -1,4 +1,3 @@
-# core_processor.py
 import os
 import time
 import gspread

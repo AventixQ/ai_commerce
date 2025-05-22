@@ -1,4 +1,3 @@
-# app_interface.py
 import streamlit as st
 import os
 import re
@@ -7,7 +6,7 @@ import importlib
 import pkgutil
 from typing import Dict, Type, List, Any, Optional, Union
 from prompt_handlers.base_handler import BasePromptHandler
-from core_processor_llm_only import run_core_logic
+from core_processors.core_processor_llm_only import run_core_logic
 
 load_dotenv()
 
