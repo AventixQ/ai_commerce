@@ -13,10 +13,6 @@ class DescriptionKeywordHandler(BasePromptHandler):
     PROMPT_KEY: str = "description_keywords"
 
     @staticmethod
-    def get_handler_category() -> str:
-        return "scrape_and_llm"
-
-    @staticmethod
     def get_prompt_key() -> str:
         """Returns the unique key for this prompt handler."""
         return DescriptionKeywordHandler.PROMPT_KEY

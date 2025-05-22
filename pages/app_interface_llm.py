@@ -7,11 +7,11 @@ import importlib
 import pkgutil
 from typing import Dict, Type, List, Any, Optional
 from prompt_handlers.base_handler import BasePromptHandler
-from core_processor import run_core_logic
+from core_processor_llm_only import run_core_logic
 
 load_dotenv()
 
-PROMPTS_FOLDER = "./prompts/"
+PROMPTS_FOLDER = "prompts/"
 PROMPT_HANDLERS_PACKAGE_NAME = "prompt_handlers"
 
 st.set_page_config(page_title="Company Website Analyzer", layout="wide")
