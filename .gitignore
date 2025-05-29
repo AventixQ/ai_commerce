@@ -3,6 +3,7 @@ other_llms
 creds.json
 .DS_Store
 run_llm_gpt.py
+*.csv
 
 
 # Byte-compiled / optimized / DLL files
